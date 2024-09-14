@@ -1,0 +1,18 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+
+# Встановлення postgresql-client
+RUN apt-get update && apt-get install -y postgresql-client
+
+# Копіювання скрипту та надання прав на виконання
+COPY wait-for-postgres.sh /app/wait-for-postgres.sh
+RUN chmod +x /app/wait-for-postgres.sh
+
+# Копіювання проекту
+COPY . /app
+WORKDIR /app/Facebook_Api
+
+# Додавання шляху до інструментів .NET Core до змінної середовища PATH
+ENV PATH="$PATH:/root/.dotnet/tools"
+
+# Виконання міграцій
+CMD ["sh", "-c", "dotnet tool install --global dotnet-ef && /app/wait-for-postgres.sh db 'dotnet ef database update --configuration Release'"]
